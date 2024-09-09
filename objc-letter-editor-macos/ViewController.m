@@ -26,17 +26,25 @@
         ViewController* sself = wself;
         if(!sself) return event;
         
-        if([sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"]) {
+        NSLog(@"# ViewController monitor");
+        
+        if([sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
+           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"]) {
 
-            if(event.type == NSEventTypeKeyDown) {
-                sself->_letterEditorViewController.view.hidden = NO;
-
-                if(sself->_letterEditorViewController.textField.currentEditor == nil) {
-                    [sself->_letterEditorViewController.textField becomeFirstResponder];
-                }
-
-                return event;
-            }
+            return event;
+            
+//            [sself->_letterEditorViewController activate];
+            
+            
+//            if(event.type == NSEventTypeKeyDown) {
+//                sself->_letterEditorViewController.view.hidden = NO;
+//
+//                if(sself->_letterEditorViewController.textField.currentEditor == nil) {
+//                    [sself->_letterEditorViewController.textField becomeFirstResponder];
+//                }
+//
+//                return event;
+//            }
         }
 
         return nil;
@@ -85,8 +93,13 @@
     
     _currentKeyboardId = [(__bridge NSString *)(sourceId) copy];
     
-    if(![_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"]) {
-        _letterEditorViewController.view.hidden = YES;
+    NSLog(@"# %@", _currentKeyboardId);
+    
+    if([_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
+       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"]) {
+        [_letterEditorViewController activate];
+    } else {
+        [_letterEditorViewController deactivate];
     }
     
     CFRelease(source);

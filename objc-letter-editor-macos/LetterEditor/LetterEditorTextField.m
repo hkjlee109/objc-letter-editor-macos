@@ -17,10 +17,4 @@
     return NO;
 }
 
-
-- (void)keyDown:(NSEvent *)event {
-    [super keyDown:event];
-    NSLog(@"keyDown");
-}
-
 @end
