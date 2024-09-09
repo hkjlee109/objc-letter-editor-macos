@@ -26,10 +26,9 @@
         ViewController* sself = wself;
         if(!sself) return event;
         
-        NSLog(@"# ViewController monitor");
-        
         if([sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
-           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"]) {
+           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
+           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]) {
 
             return event;
             
@@ -96,7 +95,8 @@
     NSLog(@"# %@", _currentKeyboardId);
     
     if([_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
-       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"]) {
+       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
+       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]) {
         [_letterEditorViewController activate];
     } else {
         [_letterEditorViewController deactivate];

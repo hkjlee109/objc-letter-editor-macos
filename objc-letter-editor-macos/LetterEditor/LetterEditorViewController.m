@@ -9,6 +9,7 @@
     id _eventMonitor;
     NSString* _charToSend;
     NSSet* _keysToBypass;
+    NSUInteger _currentLength;
 }
 
 - (void)viewDidLoad {
@@ -72,16 +73,18 @@
         LetterEditorViewController* sself = wself;
         if(!sself) return event;
         
-        NSLog(@"# LetterEditorViewController monitor: %lu", (unsigned long)self->_textField.stringValue.length);
+        // Should fire _keysToBypass at the end.
         
-        if(self->_textField.stringValue.length == 0) {
-            if([sself->_keysToBypass containsObject:@(event.keyCode)]) {
-                NSLog(@"# flush send this keycode to remote.");
-                
-                self.view.hidden = YES;
-                return nil;
-            }
-        }
+//        NSLog(@"# LetterEditorViewController monitor: %lu", (unsigned long)self->_textField.stringValue.length);
+        
+//        if(self->_textField.stringValue.length == 0) {
+//            if([sself->_keysToBypass containsObject:@(event.keyCode)]) {
+//                NSLog(@"# flush send this keycode to remote.");
+//                
+//                self.view.hidden = YES;
+//                return nil;
+//            }
+//        }
            
 //        if(event.type == NSEventTypeKeyDown) {
             sself.view.hidden = NO;
@@ -117,18 +120,40 @@
 - (void)controlTextDidChange:(NSNotification *)obj {
     NSLog(@"# controlTextDidChange: %d", _textField.stringValue.length);
     
+    if(_textField.stringValue.length < _currentLength) {
+        NSLog(@"Deleting...!");
+        _textField.stringValue = @"";
+    }
+    
+    _currentLength = _textField.stringValue.length;
+    
     if(_textField.stringValue.length > 0) {
         _charToSend = [NSString stringWithFormat:@"%X", [_textField.stringValue characterAtIndex:[_textField.stringValue length] - 1]];
-        _textField.stringValue = @"";
+        NSLog(@"# %@", _textField.stringValue);
+//        _textField.stringValue = @"";
+        
+//        unichar unichar = [_textField.stringValue characterAtIndex:[_textField.stringValue length] - 1];
+//        
+//        NSLog(@"## %C", unichar);
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(self->_textField.stringValue.length == 0) {
-//                self.view.hidden = YES;
-//                return;
-            }
+            NSLog(@"# current length: %d", _textField.stringValue.length);
             
-            NSLog(@"# Finalize. %@", self->_charToSend);
+            if(self->_currentLength == self->_textField.stringValue.length) {
+                self->_textField.stringValue = @"";
+                self->_currentLength = 0;
+            }
         });
+        
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            NSLog(@"# Length later. %d", [_textField.stringValue length]);
+//            if(self->_textField.stringValue.length == 0) {
+////                self.view.hidden = YES;
+////                return;
+//            }
+//            
+//            NSLog(@"# Finalize. %@", self->_charToSend);
+//        });
     }
 }
 
