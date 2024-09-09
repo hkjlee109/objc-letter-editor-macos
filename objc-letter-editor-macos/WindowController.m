@@ -15,7 +15,7 @@
         NSPanel* panel = [
             [NSPanel alloc]
             initWithContentRect:NSZeroRect
-            styleMask: NSWindowStyleMaskTitled | NSWindowStyleMaskClosable
+            styleMask: NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable
             backing:NSBackingStoreBuffered
             defer:YES
         ];
@@ -25,10 +25,11 @@
         [panel setFrame:NSMakeRect(0, 0, 720, 480) display:YES animate:NO];
         
         ViewController* controller = [ViewController new];
-        
+
         [panel setContentViewController:controller];
         [panel setRestorable:NO];
         [panel center];
+        
         self.window = panel;
     }
     return self;
@@ -37,7 +38,6 @@
 
 - (void)windowDidLoad {
     [super windowDidLoad];
-    
 }
 
 @end
