@@ -8,31 +8,35 @@
 @implementation LetterEditorViewController {
     id _eventMonitor;
     NSString* _charToSend;
-    NSSet* _keysToBypass;
+    NSSet* _editHelperKeys;
     NSUInteger _currentLength;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _keysToBypass = [NSSet setWithObjects:@(kVK_Return),
-                                          @(kVK_Space),
-                                          @(kVK_Delete),
-                                          @(kVK_Escape),
-                     nil];
+    _editHelperKeys = [NSSet setWithObjects:@(kVK_Return),
+                                            @(kVK_Delete),
+                                            @(kVK_Escape),
+                                            @(kVK_Escape),
+                                            @(kVK_LeftArrow),
+                                            @(kVK_RightArrow),
+                                            @(kVK_DownArrow),
+                                            @(kVK_UpArrow),
+                       nil];
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     self.view.wantsLayer = true;
     self.view.layer.cornerRadius = 25;
     self.view.layer.masksToBounds = YES;
-//    self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:68.0/255 green:68.0/255 blue:68.0/255 alpha:0.9] CGColor];
-        self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:239.0/255 green:66.0/255 blue:58.0/255 alpha:0.9] CGColor];
+    self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:239.0/255 green:66.0/255 blue:58.0/255 alpha:0.9] CGColor];
     
     _textField = [[LetterEditorTextField alloc] initWithFrame:CGRectZero];
     _textField.translatesAutoresizingMaskIntoConstraints = NO;
     _textField.delegate = self;
     _textField.bezeled = NO;
     _textField.editable = YES;
+    _textField.maximumNumberOfLines = 1;
     _textField.focusRingType = NSFocusRingTypeNone;
     _textField.alignment = NSTextAlignmentCenter;
     _textField.backgroundColor = [NSColor clearColor];
@@ -72,6 +76,11 @@
         LetterEditorViewController* sself = wself;
         if(!sself) return event;
         
+        if(sself.view.hidden && [sself->_editHelperKeys containsObject:@(event.keyCode)]) {
+            NSLog(@"No string.. Transmit helper key.");
+            return nil;
+        }
+        
         if(event.type == NSEventTypeKeyDown) {
             sself.view.hidden = NO;
             if(sself.textField.currentEditor == nil) {
@@ -80,7 +89,7 @@
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSLog(@"Send non character words.");
+            NSLog(@"Transmit helper key.");
         });
         
         return event;
