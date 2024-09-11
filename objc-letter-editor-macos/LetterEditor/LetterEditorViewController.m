@@ -40,6 +40,7 @@
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     self.view.wantsLayer = true;
+    self.view.alphaValue = 0;
     self.view.layer.cornerRadius = 25;
     self.view.layer.masksToBounds = YES;
     self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:239.0/255 green:66.0/255 blue:58.0/255 alpha:0.9] CGColor];
@@ -84,16 +85,8 @@
     }
     
     if(self.textField.currentEditor == nil) {
-        NSLog(@"# first responder");
         [self.textField becomeFirstResponder];
     }
-    self.view.alphaValue = 0;
-    self.view.hidden = NO;
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.view.alphaValue = 1;
-        self.view.hidden = YES;
-    });
     
     __weak LetterEditorViewController *wself = self;
     _eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown | NSEventMaskKeyUp | NSEventMaskFlagsChanged handler:^NSEvent *(NSEvent *event) {
@@ -101,34 +94,20 @@
         LetterEditorViewController* sself = wself;
         if(!sself) return event;
         
-        if(sself.view.hidden && [sself->_terminateKeys containsObject:@(event.keyCode)]) {
-            [self forwardEvent:event];
+        if([sself->_terminateKeys containsObject:@(event.keyCode)]) {
+            [sself endEditorIfNeeded];
+            [sself forwardEvent:event];
             return nil;
         }
         
-        if([sself isEditing] && [sself->_terminateKeys containsObject:@(event.keyCode)]) {
-            NSLog(@"# It's editing and terminate Keys");
-            [self terminateEditor];
-            [self forwardEvent:event];
-            return nil;
-        }
-
         if(event.type == NSEventTypeKeyDown) {
-            if(sself.textField.currentEditor == nil) {
-                [sself.textField becomeFirstResponder];
-            }
-//            sself.view.hidden = NO;
-            
+            // Delayed display to prevent flickering. eg. When number is entered from nothing.
             dispatch_async(dispatch_get_main_queue(), ^{
-//                if(self->_currentLength != self->_textField.stringValue.length) {
-                    sself.view.hidden = NO;
-//                }
+                [sself startEditor];
             });
         }
         
         return event;
-        
-        return nil;
     }];
 }
 
@@ -137,6 +116,9 @@
         [NSEvent removeMonitor:_eventMonitor];
         _eventMonitor = nil;
     }
+    
+    self.view.alphaValue = 0;
+    [self.textField resignFirstResponder];
 }
 
 - (BOOL)isEditing {
@@ -149,36 +131,45 @@
 }
 
 - (void)forwardEvent:(NSEvent*)event{
-    NSLog(@"# Forwarding event %x", event.keyCode);
+    NSLog(@"# Forwarding event 0x%02x %d", event.keyCode, event.type);
 }
 
-- (void)terminateEditor {
+- (void)startEditor {
+    NSLog(@"# startEditor");
+    self.view.alphaValue = 1;
+}
+
+- (void)endEditor {
+    NSLog(@"# terminateEditor");
     self->_textField.stringValue = @"";
     self->_currentLength = 0;
-    self.view.hidden = YES;
+    self.view.alphaValue = 0;
 }
 
-- (void)controlTextDidChange:(NSNotification *)obj {
-    NSLog(@"# controlTextDidChange: %d", _textField.stringValue.length);
+- (void)endEditorIfNeeded {
+    if([self isEditing]) {
+        [self endEditor];
+    }
+}
 
+
+- (void)controlTextDidChange:(NSNotification *)obj {
+    NSLog(@"# controlTextDidChange: %lu", (unsigned long)_textField.stringValue.length);
+
+    // When the string got shorter. eg. by backspace key.
     if(_textField.stringValue.length < _currentLength) {
-        _textField.stringValue = @"";
-        self.view.hidden = YES;
+        [self endEditor];
     }
     
     _currentLength = _textField.stringValue.length;
     
     if(_textField.stringValue.length > 0) {
-//        _charToSend = [NSString stringWithFormat:@"%hu", [_textField.stringValue characterAtIndex:[_textField.stringValue length] - 1]];
-//        NSLog(@"# %@, _charToSend: %@", _textField.stringValue, _charToSend);
-  
         [self transmitCharacter];
         
+        // Some character ends editing. eg. 한!
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(self->_currentLength == self->_textField.stringValue.length) {
-                self->_textField.stringValue = @"";
-                self.view.hidden = YES;
-                self->_currentLength = 0;
+            if(![self isEditing]) {
+                [self endEditor];
             }
         });
     }

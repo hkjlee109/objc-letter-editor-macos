@@ -50,7 +50,6 @@
     }];
     
     _letterEditorViewController = [LetterEditorViewController new];
-    _letterEditorViewController.view.hidden = YES;
     [self addChildViewController:_letterEditorViewController];
     [self.view addSubview:_letterEditorViewController.view];
     
