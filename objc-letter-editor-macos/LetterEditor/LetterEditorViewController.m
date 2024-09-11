@@ -125,17 +125,23 @@
     return (_currentLength != [_textField.stringValue length]);
 }
 
-- (void)transmitCharacter {
-    NSString* c = [_textField.stringValue substringFromIndex:[_textField.stringValue length] - 1];
-    NSLog(@"# %@: Send this: %@", _textField.stringValue, c);
+- (void)transmitString:(NSString*)string {
+    NSLog(@"## %@ %d", string, [string length]);
+    NSUInteger len = [string length];
+    unichar unichars[len + 1];
+
+    [string getCharacters:unichars range:NSMakeRange(0, len)];
+
+    for(int i = 0; i < len; i++) {
+        NSLog(@"# Transmit: %x", unichars[i]);
+    }
 }
 
 - (void)forwardEvent:(NSEvent*)event{
-    NSLog(@"# Forwarding event 0x%02x %d", event.keyCode, event.type);
+    NSLog(@"# Forwarding event 0x%02x %lu", event.keyCode, (unsigned long)event.type);
 }
 
 - (void)startEditor {
-    NSLog(@"# startEditor");
     self.view.alphaValue = 1;
 }
 
@@ -152,7 +158,6 @@
     }
 }
 
-
 - (void)controlTextDidChange:(NSNotification *)obj {
     NSLog(@"# controlTextDidChange: %lu", (unsigned long)_textField.stringValue.length);
 
@@ -161,11 +166,9 @@
         [self endEditor];
     }
     
-    _currentLength = _textField.stringValue.length;
-    
     if(_textField.stringValue.length > 0) {
-        [self transmitCharacter];
-        
+        [self transmitString:[_textField.stringValue substringFromIndex:_currentLength]];
+
         // Some character ends editing. eg. 한!
         dispatch_async(dispatch_get_main_queue(), ^{
             if(![self isEditing]) {
@@ -173,6 +176,8 @@
             }
         });
     }
+    
+    _currentLength = _textField.stringValue.length;
 }
 
 @end
