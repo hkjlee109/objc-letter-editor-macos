@@ -8,35 +8,29 @@
 @implementation LetterEditorViewController {
     id _eventMonitor;
     NSString* _charToSend;
-    NSSet* _editHelperKeys;
-    NSSet* _terminateKeys;
+    NSSet* _breakKeys;
+    NSSet* _conditionalBreakKeys;
     NSUInteger _currentLength;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    _breakKeys = [NSSet setWithObjects:
+                  @(kVK_Return),
+                  @(kVK_Escape),
+                  @(kVK_LeftArrow),
+                  @(kVK_RightArrow),
+                  @(kVK_DownArrow),
+                  @(kVK_UpArrow),
+                  @(kVK_F1),
+                  @(kVK_F2),
+                  @(kVK_F3),
+                  @(kVK_F4),
+                  @(kVK_F5),
+                  nil];
     
-    _editHelperKeys = [NSSet setWithObjects:@(kVK_Return),
-                       @(kVK_Delete),
-                       @(kVK_Escape),
-                       @(kVK_LeftArrow),
-                       @(kVK_RightArrow),
-                       @(kVK_DownArrow),
-                       @(kVK_UpArrow),
-                       nil];
-    
-    _terminateKeys = [NSSet setWithObjects:@(kVK_Return),
-                                           @(kVK_Escape),
-                                           @(kVK_LeftArrow),
-                                           @(kVK_RightArrow),
-                                           @(kVK_DownArrow),
-                                           @(kVK_UpArrow),
-                                           @(kVK_F1),
-                                           @(kVK_F2),
-                                           @(kVK_F3),
-                                           @(kVK_F4),
-                                           @(kVK_F5),
-                       nil];
+    _conditionalBreakKeys = [NSSet setWithObjects:@(kVK_Delete), nil];
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     self.view.wantsLayer = true;
@@ -94,8 +88,13 @@
         LetterEditorViewController* sself = wself;
         if(!sself) return event;
         
-        if([sself->_terminateKeys containsObject:@(event.keyCode)]) {
+        if([sself->_breakKeys containsObject:@(event.keyCode)]) {
             [sself endEditorIfNeeded];
+            [sself forwardEvent:event];
+            return nil;
+        }
+        
+        if([sself->_conditionalBreakKeys containsObject:@(event.keyCode)] && ![sself isEditing]) {
             [sself forwardEvent:event];
             return nil;
         }
@@ -125,18 +124,6 @@
     return (_currentLength != [_textField.stringValue length]);
 }
 
-- (void)transmitString:(NSString*)string {
-    NSLog(@"## %@ %d", string, [string length]);
-    NSUInteger len = [string length];
-    unichar unichars[len + 1];
-
-    [string getCharacters:unichars range:NSMakeRange(0, len)];
-
-    for(int i = 0; i < len; i++) {
-        NSLog(@"# Transmit: %x", unichars[i]);
-    }
-}
-
 - (void)forwardEvent:(NSEvent*)event{
     NSLog(@"# Forwarding event 0x%02x %lu", event.keyCode, (unsigned long)event.type);
 }
@@ -155,6 +142,18 @@
 - (void)endEditorIfNeeded {
     if([self isEditing]) {
         [self endEditor];
+    }
+}
+
+- (void)transmitString:(NSString*)string {
+    NSLog(@"## %@ %d", string, [string length]);
+    NSUInteger len = [string length];
+    unichar unichars[len + 1];
+
+    [string getCharacters:unichars range:NSMakeRange(0, len)];
+
+    for(int i = 0; i < len; i++) {
+        NSLog(@"# Transmit: %x", unichars[i]);
     }
 }
 
