@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)activate;
 - (void)deactivate;
+- (NSEvent*)processEvent:(NSEvent*)event;
 
 @end
 

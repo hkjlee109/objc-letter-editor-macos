@@ -29,21 +29,7 @@
         if([sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]) {
-
-            return event;
-            
-//            [sself->_letterEditorViewController activate];
-            
-            
-//            if(event.type == NSEventTypeKeyDown) {
-//                sself->_letterEditorViewController.view.hidden = NO;
-//
-//                if(sself->_letterEditorViewController.textField.currentEditor == nil) {
-//                    [sself->_letterEditorViewController.textField becomeFirstResponder];
-//                }
-//
-//                return event;
-//            }
+            return [sself->_letterEditorViewController processEvent:event];
         }
 
         return nil;

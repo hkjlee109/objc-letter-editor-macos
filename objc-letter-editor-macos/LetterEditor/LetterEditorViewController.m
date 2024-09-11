@@ -6,8 +6,6 @@
 @end
 
 @implementation LetterEditorViewController {
-    id _eventMonitor;
-    NSString* _charToSend;
     NSSet* _breakKeys;
     NSSet* _conditionalBreakKeys;
     NSUInteger _currentLength;
@@ -52,13 +50,6 @@
     [self setupConstraints];
 }
 
-- (void)dealloc {
-    if(_eventMonitor) {
-        [NSEvent removeMonitor:_eventMonitor];
-        _eventMonitor = nil;
-    }
-}
-
 - (void)setupConstraints {
     [self.view addSubview:_textField];
     
@@ -74,14 +65,11 @@
 - (void)activate {
     NSLog(@"# LetterEditorViewController activate");
     
-    if(_eventMonitor) {
-        return;
-    }
-    
     if(self.textField.currentEditor == nil) {
         [self.textField becomeFirstResponder];
     }
     
+/*
     __weak LetterEditorViewController *wself = self;
     _eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown | NSEventMaskKeyUp | NSEventMaskFlagsChanged handler:^NSEvent *(NSEvent *event) {
         
@@ -108,16 +96,34 @@
         
         return event;
     }];
+ */
 }
 
 - (void)deactivate {
-    if(_eventMonitor) {
-        [NSEvent removeMonitor:_eventMonitor];
-        _eventMonitor = nil;
-    }
-    
     self.view.alphaValue = 0;
     [self.textField resignFirstResponder];
+}
+
+- (NSEvent*)processEvent:(NSEvent*)event {
+    if([self->_breakKeys containsObject:@(event.keyCode)]) {
+        [self endEditorIfNeeded];
+        [self forwardEvent:event];
+        return nil;
+    }
+    
+    if([self->_conditionalBreakKeys containsObject:@(event.keyCode)] && ![self isEditing]) {
+        [self forwardEvent:event];
+        return nil;
+    }
+    
+    if(event.type == NSEventTypeKeyDown) {
+        // Delayed display to prevent flickering. eg. When number is entered from nothing.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self startEditor];
+        });
+    }
+    
+    return event;
 }
 
 - (BOOL)isEditing {
@@ -163,13 +169,16 @@
     // When the string got shorter. eg. by backspace key.
     if(_textField.stringValue.length < _currentLength) {
         [self endEditor];
+        return;
     }
     
     if(_textField.stringValue.length > 0) {
         [self transmitString:[_textField.stringValue substringFromIndex:_currentLength]];
-
+        self->_textField.alphaValue = 0;
+        
         // Some character ends editing. eg. 한!
         dispatch_async(dispatch_get_main_queue(), ^{
+            self->_textField.alphaValue = 1;
             if(![self isEditing]) {
                 [self endEditor];
             }
