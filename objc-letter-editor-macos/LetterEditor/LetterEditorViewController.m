@@ -10,6 +10,8 @@
     NSSet* _conditionalBreakKeys;
     NSSet* _characterKeys;
     NSUInteger _currentLength;
+    
+    NSLayoutConstraint* _textFieldWidthConstraint;
 }
 
 NSArray* characterKeyCodes = @[
@@ -71,10 +73,6 @@ NSArray* characterKeyCodes = @[
     _breakKeys = [NSSet setWithObjects:
                   @(kVK_Return),
                   @(kVK_Escape),
-//                  @(kVK_LeftArrow),
-//                  @(kVK_RightArrow),
-//                  @(kVK_DownArrow),
-//                  @(kVK_UpArrow),
                   @(kVK_F1),
                   @(kVK_F2),
                   @(kVK_F3),
@@ -84,14 +82,12 @@ NSArray* characterKeyCodes = @[
     
     _conditionalBreakKeys = [NSSet setWithObjects:@(kVK_Delete), nil];
     
-    
-    
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     self.view.wantsLayer = true;
     self.view.alphaValue = 0;
     self.view.layer.cornerRadius = 25;
     self.view.layer.masksToBounds = YES;
-    self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:239.0/255 green:66.0/255 blue:58.0/255 alpha:0.9] CGColor];
+    self.view.layer.backgroundColor = [[NSColor colorWithCalibratedRed:239.0/255 green:66.0/255 blue:58.0/255 alpha:0.3] CGColor];
     
     _textField = [[LetterEditorTextField alloc] initWithFrame:CGRectZero];
     _textField.translatesAutoresizingMaskIntoConstraints = NO;
@@ -102,19 +98,23 @@ NSArray* characterKeyCodes = @[
     _textField.focusRingType = NSFocusRingTypeNone;
     _textField.alignment = NSTextAlignmentCenter;
     _textField.backgroundColor = [NSColor clearColor];
-    
+
     [self setupConstraints];
 }
 
 - (void)setupConstraints {
     [self.view addSubview:_textField];
     
+    _textFieldWidthConstraint = [_textField.widthAnchor constraintEqualToConstant:70];
+    
     [NSLayoutConstraint activateConstraints:@[
-        [self.view.widthAnchor constraintEqualToConstant:50],
-        [self.view.heightAnchor constraintEqualToConstant:50],
         [_textField.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [_textField.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [_textField.widthAnchor constraintEqualToConstant:20],
+        [_textField.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:5],
+        [_textField.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-5],
+        _textFieldWidthConstraint,
+        
+        [self.view.heightAnchor constraintEqualToConstant:80],
     ]];
 }
 
@@ -124,35 +124,6 @@ NSArray* characterKeyCodes = @[
     if(self.textField.currentEditor == nil) {
         [self.textField becomeFirstResponder];
     }
-    
-/*
-    __weak LetterEditorViewController *wself = self;
-    _eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown | NSEventMaskKeyUp | NSEventMaskFlagsChanged handler:^NSEvent *(NSEvent *event) {
-        
-        LetterEditorViewController* sself = wself;
-        if(!sself) return event;
-        
-        if([sself->_breakKeys containsObject:@(event.keyCode)]) {
-            [sself endEditorIfNeeded];
-            [sself forwardEvent:event];
-            return nil;
-        }
-        
-        if([sself->_conditionalBreakKeys containsObject:@(event.keyCode)] && ![sself isEditing]) {
-            [sself forwardEvent:event];
-            return nil;
-        }
-        
-        if(event.type == NSEventTypeKeyDown) {
-            // Delayed display to prevent flickering. eg. When number is entered from nothing.
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [sself startEditor];
-            });
-        }
-        
-        return event;
-    }];
- */
 }
 
 - (void)deactivate {
@@ -179,11 +150,15 @@ NSArray* characterKeyCodes = @[
         });
     }
     
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self resizeEditor];
+    });
+
     return event;
 }
 
 - (BOOL)isEditing {
-    return (_currentLength != [_textField.stringValue length]);
+    return ([_textField.stringValue length] != 0) && ([_textField.stringValue length] != _currentLength);
 }
 
 - (void)forwardEvent:(NSEvent*)event{
@@ -207,6 +182,18 @@ NSArray* characterKeyCodes = @[
     }
 }
 
+- (void)resizeEditor {
+    NSSize size = [_textField sizeThatFits:CGSizeMake(500, 50)];
+    self->_textFieldWidthConstraint.constant = MAX(size.width, 40) + 30;
+    
+    NSLog(
+        @"# length: %lu, width: %f, final: %f",
+        (unsigned long)[self->_textField.stringValue length],
+        size.width,
+        self->_textFieldWidthConstraint.constant
+    );
+}
+
 - (void)transmitString:(NSString*)string {
     NSLog(@"## %@ %d", string, [string length]);
     NSUInteger len = [string length];
@@ -227,9 +214,11 @@ NSArray* characterKeyCodes = @[
         [self endEditor];
         return;
     }
-    
+
     if(_textField.stringValue.length > 0) {
-        [self transmitString:[_textField.stringValue substringFromIndex:_currentLength]];
+        NSString* stringToTransmit = [_textField.stringValue substringFromIndex:_currentLength];
+        [self transmitString:stringToTransmit];
+        self->_textField.stringValue = [_textField.stringValue substringFromIndex:[stringToTransmit length]];
         self->_textField.alphaValue = 0;
         
         // Some character ends editing. eg. 한!
