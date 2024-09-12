@@ -28,7 +28,8 @@
         
         if([sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
-           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]) {
+           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]　||
+           [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.KANA"]) {
             return [sself->_letterEditorViewController processEvent:event];
         }
 
@@ -81,7 +82,8 @@
     
     if([_currentKeyboardId isEqualToString:@"com.apple.keylayout.2SetHangul"] ||
        [_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
-       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"]) {
+       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"] ||
+       [_currentKeyboardId isEqualToString:@"com.apple.keylayout.KANA"]) {
         [_letterEditorViewController activate];
     } else {
         [_letterEditorViewController deactivate];
