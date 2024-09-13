@@ -30,7 +30,17 @@
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.3SetHangul"] ||
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.PinyinKeyboard"] ||
            [sself->_currentKeyboardId isEqualToString:@"com.apple.keylayout.KANA"]) {
-            return [sself->_letterEditorViewController processEvent:event];
+            switch([sself->_letterEditorViewController processEvent:event]) {
+                case PostEventActionDiscard:
+                    NSLog(@"# PostEventActionDiscard");
+                    return nil;
+                case PostEventActionSendToHost:
+                    NSLog(@"# PostEventActionSendToHost");
+                    return event;
+                case PostEventActionSendToRemote:
+                    NSLog(@"# PostEventActionSendToRemote");
+                    return nil;
+            }
         }
 
         return nil;

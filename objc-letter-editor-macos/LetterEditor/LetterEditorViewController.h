@@ -3,13 +3,19 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, PostEventAction) {
+    PostEventActionDiscard,
+    PostEventActionSendToHost,
+    PostEventActionSendToRemote
+};
+
 @interface LetterEditorViewController : NSViewController
 
 @property (nonatomic, strong) LetterEditorTextField* textField;
 
 - (void)activate;
 - (void)deactivate;
-- (NSEvent*)processEvent:(NSEvent*)event;
+- (PostEventAction)processEvent:(NSEvent*)event;
 
 @end
 

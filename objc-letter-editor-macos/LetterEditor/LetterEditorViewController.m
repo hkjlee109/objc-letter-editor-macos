@@ -131,16 +131,16 @@ NSArray* characterKeyCodes = @[
     [self.textField resignFirstResponder];
 }
 
-- (NSEvent*)processEvent:(NSEvent*)event {
+- (PostEventAction)processEvent:(NSEvent*)event {
     if([self->_breakKeys containsObject:@(event.keyCode)]) {
         [self endEditorIfNeeded];
         [self forwardEvent:event];
-        return nil;
+        return PostEventActionDiscard;
     }
     
     if([self->_conditionalBreakKeys containsObject:@(event.keyCode)] && ![self isEditing]) {
         [self forwardEvent:event];
-        return nil;
+        return PostEventActionDiscard;
     }
     
     if(event.type == NSEventTypeKeyDown) {
@@ -154,7 +154,7 @@ NSArray* characterKeyCodes = @[
         [self resizeEditor];
     });
 
-    return event;
+    return PostEventActionSendToHost;
 }
 
 - (BOOL)isEditing {
@@ -183,6 +183,11 @@ NSArray* characterKeyCodes = @[
 }
 
 - (void)resizeEditor {
+    if([self->_textField.stringValue length] == 0) {
+        [self endEditor];
+        return;
+    }
+    
     NSSize size = [_textField sizeThatFits:CGSizeMake(500, 50)];
     self->_textFieldWidthConstraint.constant = MAX(size.width, 40) + 30;
     
