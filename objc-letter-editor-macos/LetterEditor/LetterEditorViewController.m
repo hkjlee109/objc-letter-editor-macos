@@ -14,73 +14,83 @@
     NSLayoutConstraint* _textFieldWidthConstraint;
 }
 
-NSArray* characterKeyCodes = @[
-    @(kVK_ANSI_Grave),
-    @(kVK_ANSI_1),
-    @(kVK_ANSI_2),
-    @(kVK_ANSI_3),
-    @(kVK_ANSI_4),
-    @(kVK_ANSI_5),
-    @(kVK_ANSI_6),
-    @(kVK_ANSI_7),
-    @(kVK_ANSI_8),
-    @(kVK_ANSI_9),
-    @(kVK_ANSI_0),
-    @(kVK_ANSI_Minus),
-    @(kVK_ANSI_Equal),
-    
-    @(kVK_ANSI_Q),
-    @(kVK_ANSI_W),
-    @(kVK_ANSI_E),
-    @(kVK_ANSI_R),
-    @(kVK_ANSI_T),
-    @(kVK_ANSI_Y),
-    @(kVK_ANSI_U),
-    @(kVK_ANSI_I),
-    @(kVK_ANSI_O),
-    @(kVK_ANSI_P),
-    @(kVK_ANSI_LeftBracket),
-    @(kVK_ANSI_RightBracket),
-    @(kVK_ANSI_Backslash),
-    
-    @(kVK_ANSI_A),
-    @(kVK_ANSI_S),
-    @(kVK_ANSI_D),
-    @(kVK_ANSI_F),
-    @(kVK_ANSI_G),
-    @(kVK_ANSI_H),
-    @(kVK_ANSI_J),
-    @(kVK_ANSI_K),
-    @(kVK_ANSI_L),
-    @(kVK_ANSI_Semicolon),
-    @(kVK_ANSI_Quote),
-
-    @(kVK_ANSI_Z),
-    @(kVK_ANSI_X),
-    @(kVK_ANSI_C),
-    @(kVK_ANSI_V),
-    @(kVK_ANSI_B),
-    @(kVK_ANSI_N),
-    @(kVK_ANSI_M),
-    @(kVK_ANSI_Comma),
-    @(kVK_ANSI_Period),
-    @(kVK_ANSI_Slash),
-];
-
 - (void)viewDidLoad {
     [super viewDidLoad];
 
     _breakKeys = [NSSet setWithObjects:
-                  @(kVK_Return),
-                  @(kVK_Escape),
-                  @(kVK_F1),
-                  @(kVK_F2),
-                  @(kVK_F3),
-                  @(kVK_F4),
-                  @(kVK_F5),
-                  nil];
+        @(kVK_Return),
+        @(kVK_Escape),
+        @(kVK_F1),
+        @(kVK_F2),
+        @(kVK_F3),
+        @(kVK_F4),
+        @(kVK_F5),
+        @(kVK_F6),
+        @(kVK_F7),
+        @(kVK_F8),
+        @(kVK_F9),
+        @(kVK_F10),
+        @(kVK_F11),
+        @(kVK_F12),
+        nil];
     
-    _conditionalBreakKeys = [NSSet setWithObjects:@(kVK_Delete), nil];
+    _conditionalBreakKeys = [NSSet setWithObjects:
+        @(kVK_Delete),
+        nil];
+    
+    _characterKeys = [NSSet setWithObjects:
+        @(kVK_ANSI_Grave),
+        @(kVK_ANSI_1),
+        @(kVK_ANSI_2),
+        @(kVK_ANSI_3),
+        @(kVK_ANSI_4),
+        @(kVK_ANSI_5),
+        @(kVK_ANSI_6),
+        @(kVK_ANSI_7),
+        @(kVK_ANSI_8),
+        @(kVK_ANSI_9),
+        @(kVK_ANSI_0),
+        @(kVK_ANSI_Minus),
+        @(kVK_ANSI_Equal),
+                      
+        @(kVK_ANSI_Q),
+        @(kVK_ANSI_W),
+        @(kVK_ANSI_E),
+        @(kVK_ANSI_R),
+        @(kVK_ANSI_T),
+        @(kVK_ANSI_Y),
+        @(kVK_ANSI_U),
+        @(kVK_ANSI_I),
+        @(kVK_ANSI_O),
+        @(kVK_ANSI_P),
+        @(kVK_ANSI_LeftBracket),
+        @(kVK_ANSI_RightBracket),
+        @(kVK_ANSI_Backslash),
+                      
+        @(kVK_ANSI_A),
+        @(kVK_ANSI_S),
+        @(kVK_ANSI_D),
+        @(kVK_ANSI_F),
+        @(kVK_ANSI_G),
+        @(kVK_ANSI_H),
+        @(kVK_ANSI_J),
+        @(kVK_ANSI_K),
+        @(kVK_ANSI_L),
+        @(kVK_ANSI_Semicolon),
+        @(kVK_ANSI_Quote),
+
+        @(kVK_ANSI_Z),
+        @(kVK_ANSI_X),
+        @(kVK_ANSI_C),
+        @(kVK_ANSI_V),
+        @(kVK_ANSI_B),
+        @(kVK_ANSI_N),
+        @(kVK_ANSI_M),
+        @(kVK_ANSI_Comma),
+        @(kVK_ANSI_Period),
+        @(kVK_ANSI_Slash),
+        @(kVK_Space),
+        nil];
     
     self.view.translatesAutoresizingMaskIntoConstraints = NO;
     self.view.wantsLayer = true;
@@ -98,7 +108,8 @@ NSArray* characterKeyCodes = @[
     _textField.focusRingType = NSFocusRingTypeNone;
     _textField.alignment = NSTextAlignmentCenter;
     _textField.backgroundColor = [NSColor clearColor];
-
+    [_textField setFont:[NSFont systemFontOfSize:24.0]];
+    
     [self setupConstraints];
 }
 
@@ -132,29 +143,29 @@ NSArray* characterKeyCodes = @[
 }
 
 - (PostEventAction)processEvent:(NSEvent*)event {
+    if([self->_characterKeys containsObject:@(event.keyCode)]) {
+        if(![self isEditing]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self startEditor];
+            });
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self resizeEditor];
+        });
+        
+        return PostEventActionSendToHost;
+    }
+    
+    if([self->_conditionalBreakKeys containsObject:@(event.keyCode)] && [self isEditing]) {
+        return PostEventActionSendToHost;
+    }
+    
     if([self->_breakKeys containsObject:@(event.keyCode)]) {
         [self endEditorIfNeeded];
-        [self forwardEvent:event];
-        return PostEventActionDiscard;
     }
-    
-    if([self->_conditionalBreakKeys containsObject:@(event.keyCode)] && ![self isEditing]) {
-        [self forwardEvent:event];
-        return PostEventActionDiscard;
-    }
-    
-    if(event.type == NSEventTypeKeyDown) {
-        // Delayed display to prevent flickering. eg. When number is entered from nothing.
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self startEditor];
-        });
-    }
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self resizeEditor];
-    });
 
-    return PostEventActionSendToHost;
+    return PostEventActionSendToRemote;;
 }
 
 - (BOOL)isEditing {
@@ -190,13 +201,6 @@ NSArray* characterKeyCodes = @[
     
     NSSize size = [_textField sizeThatFits:CGSizeMake(500, 50)];
     self->_textFieldWidthConstraint.constant = MAX(size.width, 40) + 30;
-    
-    NSLog(
-        @"# length: %lu, width: %f, final: %f",
-        (unsigned long)[self->_textField.stringValue length],
-        size.width,
-        self->_textFieldWidthConstraint.constant
-    );
 }
 
 - (void)transmitString:(NSString*)string {
@@ -212,10 +216,12 @@ NSArray* characterKeyCodes = @[
 }
 
 - (void)controlTextDidChange:(NSNotification *)obj {
+    NSLog(@"# _currentLength: %lu", (unsigned long)_currentLength);
     NSLog(@"# controlTextDidChange: %lu", (unsigned long)_textField.stringValue.length);
 
     // When the string got shorter. eg. by backspace key.
     if(_textField.stringValue.length < _currentLength) {
+        NSLog(@"# stringValue.length < _currentLength");
         [self endEditor];
         return;
     }
